@@ -10,4 +10,4 @@ import { DragComponent } from './components/drag/drag.component';
   declarations: [AppComponent, HelloComponent, DragComponent],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }
