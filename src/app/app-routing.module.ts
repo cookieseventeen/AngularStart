@@ -3,14 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { DragComponent } from './components/drag/drag.component';
 const routes: Routes = [
-  { path: 'drag', component: DragComponent }
+  { path: 'drag', component: DragComponent },
+  { path: '**', component: DragComponent },
 ];
 
 @NgModule({
   declarations: [],
-  imports: [
-    RouterModule.forRoot(routes)
-  ],
-  exports: [RouterModule]
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
