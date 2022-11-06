@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { fromEvent, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { fromEvent, Observable, merge } from 'rxjs';
+import { tap, map, takeUntil } from 'rxjs/operators';
 @Component({
   selector: 'app-drag',
   templateUrl: './drag.component.html',
@@ -9,44 +9,56 @@ import { tap } from 'rxjs/operators';
 export class DragComponent implements OnInit {
   @ViewChild('dragArea') dragArea: ElementRef<HTMLElement>;
 
-  public mouseDown: Observable<any>;
-  public mouseUp: Observable<any>;
-  public mouseMove: Observable<any>;
+  public mouseDown$: Observable<any>;
+  public mouseUp$: Observable<any>;
+  public mouseLeave$: Observable<any>;
+  public mouseMove$: Observable<any>;
+  public stopEvent$: Observable<any>;
   public press: boolean = false;
   public moveTemp: number;
   public moveingX: number;
 
-  constructor() {}
+  constructor() { }
 
   ngOnInit() {
     return;
   }
 
   ngAfterViewInit(): void {
-    this.mouseDown = fromEvent(this.dragArea.nativeElement, 'mousedown');
-    this.mouseUp = fromEvent(this.dragArea.nativeElement, 'mouseup');
-    this.mouseMove = fromEvent(this.dragArea.nativeElement, 'mousemove');
+    this.mouseDown$ = fromEvent(this.dragArea.nativeElement, 'mousedown');
+    this.mouseMove$ = fromEvent(this.dragArea.nativeElement, 'mousemove');
+    this.mouseUp$ = fromEvent(this.dragArea.nativeElement, 'mouseup');
+    this.mouseLeave$ = fromEvent(this.dragArea.nativeElement, 'mouseleave');
+    this.stopEvent$ = merge(
+      this.mouseUp$,
+      this.mouseLeave$,
+    );
 
-    const source = this.mouseMove
+    const source = this.mouseMove$
       .pipe(
         tap((event) => {
-          if (this.press) {
-            if (Math.abs(this.moveTemp - event.clientX) < 2) return;
+          // if (this.press) {
+          //   if (Math.abs(this.moveTemp - event.clientX) < 2) return;
 
-            if (this.moveTemp - event.clientX > 1) {
-              console.log('scroll left');
-              this.dragArea.nativeElement.scrollLeft -= 20;
-            } else {
-              console.log('scroll right');
-              this.dragArea.nativeElement.scrollLeft += 20;
-            }
-            this.moveTemp = event.clientX;
-          }
-        })
-      )
-      .subscribe((event) => {});
+          //   if (this.moveTemp - event.clientX > 1) {
+          //     console.log('scroll left');
+          //     this.dragArea.nativeElement.scrollLeft -= 20;
+          //   } else {
+          //     console.log('scroll right');
+          //     this.dragArea.nativeElement.scrollLeft += 20;
+          //   }
+          //   this.moveTemp = event.clientX;
+          // }
+        }),
+        map((event) => {
+          return this.mouseMove$
+        }),
+        tap((event) => {
+          console.log(event);
+        }),
+      ).subscribe((event) => { });
 
-    this.mouseDown
+    this.mouseDown$
       .pipe(
         tap((event) => {
           this.press = true;
@@ -55,7 +67,7 @@ export class DragComponent implements OnInit {
       )
       .subscribe();
 
-    this.mouseUp
+    this.stopEvent$
       .pipe(
         tap((event) => {
           this.press = false;
@@ -63,6 +75,6 @@ export class DragComponent implements OnInit {
       )
       .subscribe();
 
-    const mousedownIng = this.mouseDown;
+
   }
 }
