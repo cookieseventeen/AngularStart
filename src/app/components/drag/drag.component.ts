@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { fromEvent, Observable, merge } from 'rxjs';
-import { tap, map, takeUntil } from 'rxjs/operators';
+import { fromEvent, Observable, merge, switchMap } from 'rxjs';
+import { tap, map, takeUntil, pairwise } from 'rxjs/operators';
 @Component({
   selector: 'app-drag',
   templateUrl: './drag.component.html',
@@ -18,7 +18,7 @@ export class DragComponent implements OnInit {
   public moveTemp: number;
   public moveingX: number;
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit() {
     return;
@@ -29,11 +29,24 @@ export class DragComponent implements OnInit {
     this.mouseMove$ = fromEvent(this.dragArea.nativeElement, 'mousemove');
     this.mouseUp$ = fromEvent(this.dragArea.nativeElement, 'mouseup');
     this.mouseLeave$ = fromEvent(this.dragArea.nativeElement, 'mouseleave');
-    this.stopEvent$ = merge(
-      this.mouseUp$,
-      this.mouseLeave$,
-    );
 
+    const source = this.mouseDown$
+      .pipe(
+        switchMap(() => this.mouseMove$.pipe(takeUntil(this.mouseUp$))),
+        tap((item) => {
+          console.log(item);
+        }),
+        pairwise(),
+        tap(console.log)
+      )
+      .subscribe();
+
+    // this.stopEvent$ = merge(
+    //   this.mouseUp$,
+    //   this.mouseLeave$,
+    // );
+
+    /*
     const source = this.mouseMove$
       .pipe(
         tap((event) => {
@@ -74,7 +87,6 @@ export class DragComponent implements OnInit {
         })
       )
       .subscribe();
-
-
+        */
   }
 }
